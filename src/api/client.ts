@@ -36,6 +36,30 @@ export type ClaimCreateInput = Omit<ClaimRecord, "id" | "createdAt"> & {
 const API_BASE_URL = "http://localhost:3001";
 const BACKEND_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
+export interface AuthResponse {
+  token: string;
+  user: { id: string; name: string; email: string; role: string };
+}
+
+async function authRequest<T>(path: string, body: Record<string, string>): Promise<T> {
+  const response = await fetch(`${BACKEND_URL}/api/auth/${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message ?? `Authentication failed (${response.status}).`);
+  return data as T;
+}
+
+export function loginAccount(email: string, password: string): Promise<AuthResponse> {
+  return authRequest<AuthResponse>("login", { email, password });
+}
+
+export function registerAccount(name: string, email: string, password: string): Promise<{ user: AuthResponse["user"] }> {
+  return authRequest("register", { name, email, password });
+}
+
 export async function askAi(prompt: string, token: string): Promise<AiReview> {
   const response = await fetch(`${BACKEND_URL}/api/ai`, {
     method: "POST",
