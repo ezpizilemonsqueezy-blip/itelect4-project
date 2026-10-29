@@ -10,23 +10,22 @@ import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ProfilePage from "./pages/ProfilePage";
 import AiReviewPage from "./pages/AiReviewPage";
+import RegisterPage from "./pages/RegisterPage";
 
 export default function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
-        <Route path="/items" element={<ItemsPage />} />
-
-        <Route element={<ProtectedRoute />}>
-          <Route path="/items/add" element={<AddItemPage />} />
-        </Route>
-
-        <Route path="/items/:itemId" element={<ItemDetailPage />} />
-        <Route path="/claims" element={<ClaimsPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
+        {/* Items and claims are private API resources, so these pages need a token. */}
         <Route element={<ProtectedRoute />}>
+          <Route path="/items" element={<ItemsPage />} />
+          <Route path="/items/add" element={<AddItemPage />} />
+          <Route path="/items/:itemId" element={<ItemDetailPage />} />
+          <Route path="/claims" element={<ClaimsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/review" element={<AiReviewPage />} />
           <Route path="/ai-review" element={<Navigate to="/review" replace />} />

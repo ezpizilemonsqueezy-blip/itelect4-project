@@ -1,10 +1,10 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createItem, type ItemCategory, type ItemStatus } from "../api/client";
+import { createItem, getCategories, type ItemCategory, type ItemStatus } from "../api/client";
 
 interface AddItemFormValues {
   name: string;
@@ -17,6 +17,12 @@ interface AddItemFormValues {
 export default function AddItemPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  // The dropdown options come from the backend's public categories endpoint.
+  const categoriesQuery = useQuery({
+    queryKey: ["categories"],
+    queryFn: getCategories,
+  });
 
   const mutation = useMutation({
     mutationFn: (data: AddItemFormValues) => createItem(data),
@@ -74,13 +80,17 @@ export default function AddItemPage() {
               <select
                 id="category"
                 className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+                disabled={!categoriesQuery.data}
                 {...register("category", { required: "Category is required" })}
               >
-                <option value="Personal">Personal</option>
-                <option value="Electronics">Electronics</option>
-                <option value="Accessories">Accessories</option>
-                <option value="Documents">Documents</option>
+                {categoriesQuery.isLoading ? <option value="">Loading categories…</option> : null}
+                {categoriesQuery.data?.map((category) => (
+                  <option key={category.id} value={category.name}>
+                    {category.name}
+                  </option>
+                ))}
               </select>
+              {categoriesQuery.isError ? <p className="text-sm text-rose-600">Unable to load categories.</p> : null}
               {errors.category ? <p className="text-sm text-rose-600">{errors.category.message}</p> : null}
             </div>
 
@@ -141,7 +151,7 @@ export default function AddItemPage() {
 
           {mutation.isError ? (
             <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-700">
-              Failed to add item. Please try again.
+              {mutation.error.message}
             </div>
           ) : null}
 

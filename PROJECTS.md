@@ -32,7 +32,7 @@ Campus Recovery Desk is a web-based system designed to streamline the management
 | React Router | Client-side routing |
 | Zustand | State management for auth |
 | Tailwind CSS | Styling |
-| JSON Server | Mock backend (db.json) |
+| itelect4-backend | Express + MongoDB Atlas API (via `VITE_API_URL`) |
 
 ### 📁 Project Structure
 
@@ -42,7 +42,7 @@ src/
 ├── main.tsx                 # Application entry point
 ├── index.css                # Global styles with Tailwind
 ├── api/
-│   └── client.ts            # API client configuration
+│   └── client.ts            # request() helper, API calls and response types
 ├── components/
 │   ├── Layout.tsx           # Shared navigation and layout
 │   ├── ProtectedRoute.tsx   # Auth guard component
@@ -60,7 +60,8 @@ src/
 │   ├── ItemsPage.tsx        # Items list
 │   ├── ItemDetailPage.tsx   # Item details
 │   ├── ClaimsPage.tsx       # Claims management
-│   ├── LoginPage.tsx        # Authentication
+│   ├── LoginPage.tsx        # Sign-in form
+│   ├── RegisterPage.tsx     # Account creation
 │   ├── ProfilePage.tsx      # Staff profile (protected)
 │   ├── ProjectsPage.tsx     # Projects view
 │   ├── DashboardPage.tsx    # Dashboard
@@ -72,8 +73,7 @@ src/
 │   ├── authStore.ts         # Zustand auth state
 │   └── uiStore.ts           # Zustand UI state
 └── types/
-    ├── api.ts               # API type definitions
-    └── index.ts             # Type exports
+    └── index.ts             # Shared types (AI review)
 ```
 
 ### 🛣️ Application Routes
@@ -81,10 +81,12 @@ src/
 | Route | Page | Access | Description |
 |-------|------|--------|-------------|
 | `/` | HomePage | Public | Dashboard landing page |
-| `/items` | ItemsPage | Public | Browse all recovered items |
-| `/items/:itemId` | ItemDetailPage | Public | View specific item details |
-| `/claims` | ClaimsPage | Public | Review claims and queue |
-| `/login` | LoginPage | Public | Staff authentication |
+| `/items` | ItemsPage | Protected | Browse your recovered items |
+| `/items/add` | AddItemPage | Protected | Log an item (categories from the API) |
+| `/items/:itemId` | ItemDetailPage | Protected | View specific item details |
+| `/claims` | ClaimsPage | Protected | Submit and review claims |
+| `/login` | LoginPage | Public | Sign in |
+| `/register` | RegisterPage | Public | Create an account |
 | `/profile` | ProfilePage | Protected | Authenticated staff profile |
 | `/projects` | ProjectsPage | Public | Projects overview |
 | `/dashboard` | DashboardPage | Public | Dashboard view |
@@ -115,22 +117,17 @@ src/
    npm run build
    ```
 
-4. **Start Mock Backend**
-   ```bash
-   npm run start:api
-   ```
+4. **Point at the backend**: copy `.env.example` to `.env` and set `VITE_API_URL`.
 
 The application will be available at the Vite local development URL (typically `http://localhost:5173`).
 
-### 📝 Mock Data
+### 📝 Data
 
-Sample data is stored in `db.json` and includes:
-- **Items**: Lost items with id, name, category, status, and location
-- **Claims**: User claims with claimant info and status tracking
+Items, claims, categories and users are stored in MongoDB Atlas and served by itelect4-backend.
 
 ### 🌿 Git Workflow
 
-- **Branch**: `gt3-part1`
+- **Branch**: `gt4-part2`
 - **Status**: Active development
 - **Build Status**: ✅ Verified with zero TypeScript errors
 
