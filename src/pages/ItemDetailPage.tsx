@@ -1,11 +1,16 @@
+import type { CSSProperties } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { getItemById, type ItemRecord } from "../api/client";
+import StatusStamp from "../components/StatusStamp";
+import { useAuthStore } from "../store/authStore";
 
 type ItemDetailParams = { itemId?: string } & Record<string, string | undefined>;
 
 export default function ItemDetailPage() {
   const { itemId } = useParams<ItemDetailParams>();
+  const token = useAuthStore((state) => state.token);
 
   const { data: item, isLoading, isError } = useQuery<ItemRecord>({
     queryKey: ["item", itemId],
@@ -14,52 +19,52 @@ export default function ItemDetailPage() {
   });
 
   return (
-    <section className="space-y-4">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-600">Item detail</p>
-        <h2 className="mt-2 text-3xl font-bold text-slate-900">Recovered item record</h2>
-        <p className="mt-3 text-slate-600">
-          Viewing item: <span className="font-semibold text-slate-900">{itemId ?? "unassigned"}</span>
-        </p>
-      </div>
+    <section className="mx-auto max-w-3xl space-y-6">
+      <Link to="/items" viewTransition className="inline-flex items-center gap-2 font-mono text-xs tracking-[0.16em] text-ink-soft uppercase hover:text-ink">
+        <ArrowLeft className="size-4" /> Back to the shelf
+      </Link>
 
       {isLoading ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-600">Loading item…</div>
+        <p className="panel p-6 font-mono text-sm text-ink-soft">Fetching the tag…</p>
       ) : isError || !item ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-rose-700">Unable to load this item.</div>
+        <p className="panel p-6 text-bad">Unable to load this item.</p>
       ) : (
-        <>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p className="text-sm text-slate-500">Name</p>
-              <p className="mt-2 text-2xl font-bold text-slate-900">{item.name}</p>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p className="text-sm text-slate-500">Status</p>
-              <p className="mt-2 text-2xl font-bold text-slate-900">{item.status}</p>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p className="text-sm text-slate-500">Location</p>
-              <p className="mt-2 text-2xl font-bold text-slate-900">{item.location}</p>
-            </div>
+        // Same view-transition name as the tag on the list, so the tag grows into this card.
+        <article className="tag-face rounded-b-3xl pb-8 sm:px-10" style={{ viewTransitionName: `item-${item.id}` } as CSSProperties}>
+          <span className="tag-hole" aria-hidden="true" />
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <p className="font-mono text-xs tracking-[0.18em] uppercase opacity-70">Item No. {item.id.slice(-6)}</p>
+            <StatusStamp status={item.status} delay="0.5s" />
           </div>
+          <h1 className="mt-3 font-display text-5xl leading-tight font-semibold">{item.name}</h1>
+          <p className="mt-4 max-w-xl text-lg leading-relaxed opacity-85">{item.description}</p>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">
-              {item.category} · Found {new Date(item.foundAt).toLocaleDateString()}
-            </p>
-            <p className="mt-2 text-slate-700">{item.description}</p>
-          </div>
+          <dl className="mt-8 grid gap-4 border-t border-dashed border-tag-edge pt-6 font-mono text-sm sm:grid-cols-3">
+            <div>
+              <dt className="text-xs tracking-[0.16em] uppercase opacity-60">Category</dt>
+              <dd className="mt-1">{item.category}</dd>
+            </div>
+            <div>
+              <dt className="text-xs tracking-[0.16em] uppercase opacity-60">Found at</dt>
+              <dd className="mt-1">{item.location}</dd>
+            </div>
+            <div>
+              <dt className="text-xs tracking-[0.16em] uppercase opacity-60">Found on</dt>
+              <dd className="mt-1">{new Date(item.foundAt).toLocaleDateString(undefined, { dateStyle: "long" })}</dd>
+            </div>
+          </dl>
 
           {item.status !== "Claimed" ? (
-            <Link
-              to={`/claims?itemId=${item.id}`}
-              className="inline-block rounded-xl bg-amber-600 px-4 py-2 font-semibold text-white shadow-sm transition hover:bg-amber-700"
-            >
-              Claim this item
-            </Link>
-          ) : null}
-        </>
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <Link to={`/claims?itemId=${item.id}`} viewTransition className="btn-signal">
+                This is mine, claim it
+              </Link>
+              {!token ? <p className="text-sm opacity-70">You will be asked to sign in first.</p> : null}
+            </div>
+          ) : (
+            <p className="mt-8 font-mono text-sm opacity-70">This item has already gone home.</p>
+          )}
+        </article>
       )}
     </section>
   );

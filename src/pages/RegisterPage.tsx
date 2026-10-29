@@ -3,10 +3,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { loginAccount, registerAccount } from "../api/client";
+import PassCard from "../components/PassCard";
 import { useAuthStore } from "../store/authStore";
 
 // Same rules as POST /api/auth/register, so most mistakes are caught before the request.
@@ -35,7 +33,7 @@ export default function RegisterPage() {
     },
     onSuccess: ({ token }) => {
       login(token);
-      navigate(from, { replace: true });
+      navigate(from, { replace: true, viewTransition: true });
     },
   });
   const { register, handleSubmit, formState: { errors } } = useForm<RegisterForm>({
@@ -44,42 +42,47 @@ export default function RegisterPage() {
   });
 
   return (
-    <section className="mx-auto max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600">Campus Recovery Desk</p>
-      <h2 className="mt-2 text-3xl font-bold text-slate-900 dark:text-slate-100">Create your account</h2>
-      <p className="mt-3 text-slate-600 dark:text-slate-300">New accounts start with the student role.</p>
-
-      <form onSubmit={handleSubmit((values) => mutation.mutate(values))} className="mt-6 space-y-4" noValidate>
-        <div className="space-y-2">
-          <Label htmlFor="name">Name</Label>
-          <Input id="name" autoComplete="name" placeholder="Your name" {...register("name")} />
-          {errors.name && <p className="text-sm text-rose-600">{errors.name.message}</p>}
+    <PassCard
+      eyebrow="New pass"
+      title="Get your desk pass"
+      subtitle="Anyone can browse. An account lets you claim what is yours and tag what you find."
+      footer={
+        <>
+          Already have a pass?{" "}
+          <Link to="/login" state={{ from }} viewTransition className="font-semibold text-signal hover:underline">
+            Sign in
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit((values) => mutation.mutate(values))} className="space-y-4" noValidate>
+        <label className="block space-y-1.5">
+          <span className="text-sm font-medium">Name</span>
+          <input className="field" autoComplete="name" placeholder="Your name" {...register("name")} />
+          {errors.name && <span className="block text-sm text-bad">{errors.name.message}</span>}
+        </label>
+        <label className="block space-y-1.5">
+          <span className="text-sm font-medium">Email</span>
+          <input className="field" type="email" autoComplete="email" placeholder="you@school.edu" {...register("email")} />
+          {errors.email && <span className="block text-sm text-bad">{errors.email.message}</span>}
+        </label>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block space-y-1.5">
+            <span className="text-sm font-medium">Password</span>
+            <input className="field" type="password" autoComplete="new-password" placeholder="8+ characters" {...register("password")} />
+            {errors.password && <span className="block text-sm text-bad">{errors.password.message}</span>}
+          </label>
+          <label className="block space-y-1.5">
+            <span className="text-sm font-medium">Confirm</span>
+            <input className="field" type="password" autoComplete="new-password" {...register("confirmPassword")} />
+            {errors.confirmPassword && <span className="block text-sm text-bad">{errors.confirmPassword.message}</span>}
+          </label>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" autoComplete="email" placeholder="you@example.com" {...register("email")} />
-          {errors.email && <p className="text-sm text-rose-600">{errors.email.message}</p>}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" autoComplete="new-password" placeholder="At least 8 characters" {...register("password")} />
-          {errors.password && <p className="text-sm text-rose-600">{errors.password.message}</p>}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm password</Label>
-          <Input id="confirmPassword" type="password" autoComplete="new-password" {...register("confirmPassword")} />
-          {errors.confirmPassword && <p className="text-sm text-rose-600">{errors.confirmPassword.message}</p>}
-        </div>
-        {mutation.isError && <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">{mutation.error.message}</p>}
-        <Button type="submit" className="w-full" disabled={mutation.isPending}>
-          {mutation.isPending ? "Creating account…" : "Create account"}
-        </Button>
+        {mutation.isError && <p role="alert" className="rounded-xl border border-bad/30 bg-bad/10 p-3 text-sm text-bad">{mutation.error.message}</p>}
+        <button type="submit" className="btn-signal w-full" disabled={mutation.isPending}>
+          {mutation.isPending ? "Printing your pass…" : "Create account"}
+        </button>
       </form>
-
-      <p className="mt-5 text-center text-sm text-slate-600 dark:text-slate-300">
-        Already have an account?{" "}
-        <Link to="/login" state={{ from }} className="font-semibold text-indigo-600 hover:underline">Sign in</Link>
-      </p>
-    </section>
+    </PassCard>
   );
 }
