@@ -42,22 +42,18 @@ export default function ClaimsPage() {
     defaultValues: {
       claimantName: "",
       email: "",
-      itemId: "item-101",
+      itemId: "",
     },
   });
 
   const onSubmit = (values: ClaimFormValues) => {
-    mutation.mutate({
-      itemId: values.itemId,
-      claimantName: values.claimantName,
-      email: values.email,
-      status: "Pending",
-    });
+    // The backend sets status to Pending, so only the claim details are sent.
+    mutation.mutate(values);
 
     reset({
       claimantName: "",
       email: "",
-      itemId: "item-101",
+      itemId: "",
     });
   };
 

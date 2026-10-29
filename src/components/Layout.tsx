@@ -6,7 +6,11 @@ const navItems = [
   { to: "/", label: "Home" },
   { to: "/items", label: "Items" },
   { to: "/claims", label: "Claims" },
+];
+
+const guestNavItems = [
   { to: "/login", label: "Login" },
+  { to: "/register", label: "Register" },
 ];
 
 export default function Layout() {
@@ -31,7 +35,7 @@ export default function Layout() {
           </div>
 
           <nav className="flex items-center gap-2 text-sm font-medium">
-            {navItems.map(({ to, label }) => (
+            {(token ? navItems : [...navItems, ...guestNavItems]).map(({ to, label }) => (
               <NavLink
                 key={to}
                 to={to}

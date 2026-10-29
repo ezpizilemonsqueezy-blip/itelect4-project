@@ -3,14 +3,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { askAi } from "../api/client";
-import { useAuthStore } from "../store/authStore";
 
 const promptSchema = z.object({ prompt: z.string().trim().min(20, "Write at least 20 characters.").max(2000, "Keep the description under 2000 characters.") });
 type PromptForm = z.infer<typeof promptSchema>;
 
 export default function AiReviewPage() {
-  const token = useAuthStore((state) => state.token);
-  const mutation = useMutation({ mutationFn: ({ prompt }: PromptForm) => askAi(prompt, token!) });
+  const mutation = useMutation({ mutationFn: ({ prompt }: PromptForm) => askAi(prompt) });
   const { register, handleSubmit, watch, formState: { errors } } = useForm<PromptForm>({ resolver: zodResolver(promptSchema), defaultValues: { prompt: "" } });
   const prompt = watch("prompt");
   const review = mutation.data;

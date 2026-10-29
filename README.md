@@ -36,12 +36,18 @@ This app lets staff:
 ## Main Routes
 
 - `/` — home/dashboard landing page
-- `/items` — list of recovered items
-- `/items/:itemId` — item detail page
-- `/claims` — claim verification and queue view
-- `/login` — login page
-- `/profile` — protected staff profile page
+- `/login` — sign-in form (calls `POST /api/auth/login`)
+- `/register` — account creation (calls `POST /api/auth/register`, then signs in)
+- `/items` — your recovered items (protected)
+- `/items/add` — log an item; the category dropdown reads `GET /api/categories` (protected)
+- `/items/:itemId` — item detail page (protected)
+- `/claims` — claim submission and approve/reject queue (protected)
+- `/profile` and `/review` — profile and AI project review (protected)
 - `*` — not found page
+
+## Backend
+
+All data comes from [itelect4-backend](https://github.com/ezpizilemonsqueezy-blip/itelect4-backend) (Express + MongoDB Atlas). Every call goes through the single `request()` helper in `src/api/client.ts`, which prefixes `VITE_API_URL` and adds the `Authorization: Bearer <token>` header to private calls. The types in that file mirror the backend's JSON responses.
 
 ## Setup Instructions
 
@@ -49,19 +55,20 @@ This app lets staff:
    ```bash
    npm install
    ```
-2. Start the development server:
+2. Copy `.env.example` to `.env` and set `VITE_API_URL` to the backend URL (defaults to `http://localhost:4000`).
+3. Start the development server:
    ```bash
    npm run dev
    ```
-3. Open the Vite local URL in the browser.
+4. Open the Vite local URL in the browser. The backend's `CORS_ORIGIN` must include this origin.
+
+## Deployment
+
+Deployed on Vercel with `VITE_API_URL` set to the deployed backend URL. `vercel.json` rewrites every path to `index.html` so client-side routes work on refresh. The frontend's Vercel address is listed in the backend's `CORS_ORIGIN`.
 
 ## Git / Workflow Notes
 
-This project is developed on the branch:
-
-- `gt3-part1`
-
-The branch was pushed to the remote for the pull request workflow. No tag was created for this stage.
+GT4 work is on the `gt4-part2` branch, merged through a pull request and tagged `gt4`.
 
 ## Build Verification
 
