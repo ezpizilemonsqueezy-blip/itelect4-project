@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { getItemById, type ItemRecord } from "../api/client";
 
 type ItemDetailParams = { itemId?: string } & Record<string, string | undefined>;
@@ -28,20 +28,38 @@ export default function ItemDetailPage() {
       ) : isError || !item ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-rose-700">Unable to load this item.</div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">Name</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{item.name}</p>
+        <>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <p className="text-sm text-slate-500">Name</p>
+              <p className="mt-2 text-2xl font-bold text-slate-900">{item.name}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <p className="text-sm text-slate-500">Status</p>
+              <p className="mt-2 text-2xl font-bold text-slate-900">{item.status}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <p className="text-sm text-slate-500">Location</p>
+              <p className="mt-2 text-2xl font-bold text-slate-900">{item.location}</p>
+            </div>
           </div>
+
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">Status</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{item.status}</p>
+            <p className="text-sm text-slate-500">
+              {item.category} · Found {new Date(item.foundAt).toLocaleDateString()}
+            </p>
+            <p className="mt-2 text-slate-700">{item.description}</p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">Location</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{item.location}</p>
-          </div>
-        </div>
+
+          {item.status !== "Claimed" ? (
+            <Link
+              to={`/claims?itemId=${item.id}`}
+              className="inline-block rounded-xl bg-amber-600 px-4 py-2 font-semibold text-white shadow-sm transition hover:bg-amber-700"
+            >
+              Claim this item
+            </Link>
+          ) : null}
+        </>
       )}
     </section>
   );

@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { claimSchema, type ClaimFormValues } from "@/schemas/claimSchema";
-import { createClaim, getClaims, updateClaim, type ClaimRecord } from "../api/client";
+import { createClaim, getClaims, getItems, updateClaim, type ClaimRecord } from "../api/client";
 import { useAuthStore } from "../store/authStore";
 
 export default function ClaimsPage() {
@@ -16,6 +17,12 @@ export default function ClaimsPage() {
     queryKey: ["claims"],
     queryFn: getClaims,
   });
+
+  // Items are public, so the form can offer a dropdown and the list can show names.
+  const { data: items = [] } = useQuery({ queryKey: ["items"], queryFn: getItems });
+  const itemName = (itemId: string) => items.find((item) => item.id === itemId)?.name ?? itemId;
+  const [searchParams] = useSearchParams();
+  const preselectedItemId = searchParams.get("itemId") ?? "";
 
   const mutation = useMutation({
     mutationFn: createClaim,
@@ -42,7 +49,7 @@ export default function ClaimsPage() {
     defaultValues: {
       claimantName: "",
       email: "",
-      itemId: "",
+      itemId: preselectedItemId,
     },
   });
 
@@ -95,8 +102,21 @@ export default function ClaimsPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="itemId">Item id</Label>
-            <Input id="itemId" placeholder="Item id" {...register("itemId")} />
+            <Label htmlFor="itemId">Item</Label>
+            <select
+              id="itemId"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+              {...register("itemId")}
+            >
+              <option value="">Select an item…</option>
+              {items
+                .filter((item) => item.status !== "Claimed")
+                .map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name} ({item.location})
+                  </option>
+                ))}
+            </select>
             {errors.itemId ? <p className="text-sm text-rose-600">{errors.itemId.message}</p> : null}
           </div>
 
@@ -120,7 +140,7 @@ export default function ClaimsPage() {
                 <div className="flex-1">
                   <p className="font-semibold text-slate-900">{claim.claimantName}</p>
                   <p className="mt-1 text-sm text-slate-600">{claim.email}</p>
-                  <p className="mt-1 text-xs text-slate-500">Item: {claim.itemId}</p>
+                  <p className="mt-1 text-xs text-slate-500">Item: {itemName(claim.itemId)}</p>
                 </div>
                 <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">
                   {claim.status}

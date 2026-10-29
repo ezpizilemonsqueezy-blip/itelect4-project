@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,11 +18,13 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
+  // Set by ProtectedRoute, e.g. "/claims?itemId=..." after clicking "Claim this item".
+  const from = (useLocation().state as { from?: string } | null)?.from ?? "/items";
   const mutation = useMutation({
     mutationFn: ({ email, password }: LoginForm) => loginAccount(email, password),
     onSuccess: ({ token }) => {
       login(token);
-      navigate("/items", { replace: true });
+      navigate(from, { replace: true });
     },
   });
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
@@ -55,7 +57,7 @@ export default function LoginPage() {
 
       <p className="mt-5 text-center text-sm text-slate-600 dark:text-slate-300">
         New to the app?{" "}
-        <Link to="/register" className="font-semibold text-indigo-600 hover:underline">Create an account</Link>
+        <Link to="/register" state={{ from }} className="font-semibold text-indigo-600 hover:underline">Create an account</Link>
       </p>
     </section>
   );

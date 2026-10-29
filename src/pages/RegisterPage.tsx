@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ type RegisterForm = z.infer<typeof registerSchema>;
 export default function RegisterPage() {
   const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
+  const from = (useLocation().state as { from?: string } | null)?.from ?? "/items";
   const mutation = useMutation({
     // Register returns only the user, so sign in right after to get a token.
     mutationFn: async ({ name, email, password }: RegisterForm) => {
@@ -34,7 +35,7 @@ export default function RegisterPage() {
     },
     onSuccess: ({ token }) => {
       login(token);
-      navigate("/items", { replace: true });
+      navigate(from, { replace: true });
     },
   });
   const { register, handleSubmit, formState: { errors } } = useForm<RegisterForm>({
@@ -77,7 +78,7 @@ export default function RegisterPage() {
 
       <p className="mt-5 text-center text-sm text-slate-600 dark:text-slate-300">
         Already have an account?{" "}
-        <Link to="/login" className="font-semibold text-indigo-600 hover:underline">Sign in</Link>
+        <Link to="/login" state={{ from }} className="font-semibold text-indigo-600 hover:underline">Sign in</Link>
       </p>
     </section>
   );

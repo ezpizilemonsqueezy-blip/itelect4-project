@@ -101,14 +101,15 @@ export function getCategories(): Promise<CategoryRecord[]> {
   return request<CategoryRecord[]>("/api/categories");
 }
 
-// Private
 export function getItems(): Promise<ItemRecord[]> {
-  return request<ItemRecord[]>("/api/items", { auth: true });
+  return request<ItemRecord[]>("/api/items");
 }
 
 export function getItemById(itemId: string): Promise<ItemRecord> {
-  return request<ItemRecord>(`/api/items/${itemId}`, { auth: true });
+  return request<ItemRecord>(`/api/items/${itemId}`);
 }
+
+// Private
 
 export function createItem(input: ItemCreateInput): Promise<ItemRecord> {
   return request<ItemRecord>("/api/items", { method: "POST", body: JSON.stringify(input), auth: true });

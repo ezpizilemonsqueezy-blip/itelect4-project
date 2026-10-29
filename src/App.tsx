@@ -20,11 +20,12 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* Items and claims are private API resources, so these pages need a token. */}
+        {/* Anyone can browse items; an account is only needed to log items and claim them. */}
+        <Route path="/items" element={<ItemsPage />} />
+        <Route path="/items/:itemId" element={<ItemDetailPage />} />
+
         <Route element={<ProtectedRoute />}>
-          <Route path="/items" element={<ItemsPage />} />
           <Route path="/items/add" element={<AddItemPage />} />
-          <Route path="/items/:itemId" element={<ItemDetailPage />} />
           <Route path="/claims" element={<ClaimsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/review" element={<AiReviewPage />} />
