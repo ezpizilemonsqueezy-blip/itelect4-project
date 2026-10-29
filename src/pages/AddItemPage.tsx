@@ -1,10 +1,9 @@
+import type { CSSProperties } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { createItem, getCategories, type ItemCategory, type ItemStatus } from "../api/client";
+import StatusStamp from "../components/StatusStamp";
 
 interface AddItemFormValues {
   name: string;
@@ -28,13 +27,14 @@ export default function AddItemPage() {
     mutationFn: (data: AddItemFormValues) => createItem(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["items"] });
-      navigate("/items", { replace: true });
+      navigate("/items", { replace: true, viewTransition: true });
     },
   });
 
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<AddItemFormValues>({
     defaultValues: {
@@ -45,44 +45,29 @@ export default function AddItemPage() {
       description: "",
     },
   });
-
-  const onSubmit = (values: AddItemFormValues) => {
-    mutation.mutate(values);
-  };
+  // Live values for the preview tag on the right.
+  const preview = useWatch({ control });
 
   return (
-    <section className="space-y-6">
-      <div className="rounded-3xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 p-8 text-white shadow-lg">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-100">Lost & Found</p>
-        <h2 className="mt-3 text-4xl font-bold">Log a new item</h2>
-        <p className="mt-3 max-w-2xl text-amber-50">
-          Add a newly recovered item to the system. Fill in all required fields.
-        </p>
-      </div>
+    <section className="space-y-8">
+      <header>
+        <p className="eyebrow">Tag a found item</p>
+        <h1 className="mt-2 font-display text-5xl font-semibold tracking-tight">Write the tag</h1>
+        <p className="mt-3 max-w-xl text-ink-soft">Fill in what you found. The tag on the right is exactly what everyone browsing the shelf will see.</p>
+      </header>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Item Name */}
-            <div className="space-y-2">
-              <Label htmlFor="name">Item Name *</Label>
-              <Input
-                id="name"
-                placeholder="e.g., Black Water Bottle"
-                {...register("name", { required: "Item name is required" })}
-              />
-              {errors.name ? <p className="text-sm text-rose-600">{errors.name.message}</p> : null}
-            </div>
+      <div className="grid items-start gap-10 lg:grid-cols-[1.2fr_0.8fr]">
+        <form onSubmit={handleSubmit((values) => mutation.mutate(values))} className="panel space-y-5 p-6">
+          <div className="grid gap-5 md:grid-cols-2">
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium">Item name *</span>
+              <input className="field" placeholder="e.g. Black water bottle" {...register("name", { required: "Item name is required" })} />
+              {errors.name ? <span className="block text-sm text-bad">{errors.name.message}</span> : null}
+            </label>
 
-            {/* Category */}
-            <div className="space-y-2">
-              <Label htmlFor="category">Category *</Label>
-              <select
-                id="category"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
-                disabled={!categoriesQuery.data}
-                {...register("category", { required: "Category is required" })}
-              >
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium">Category *</span>
+              <select className="field" disabled={!categoriesQuery.data} {...register("category", { required: "Category is required" })}>
                 {categoriesQuery.isLoading ? <option value="">Loading categories…</option> : null}
                 {categoriesQuery.data?.map((category) => (
                   <option key={category.id} value={category.name}>
@@ -90,77 +75,74 @@ export default function AddItemPage() {
                   </option>
                 ))}
               </select>
-              {categoriesQuery.isError ? <p className="text-sm text-rose-600">Unable to load categories.</p> : null}
-              {errors.category ? <p className="text-sm text-rose-600">{errors.category.message}</p> : null}
-            </div>
+              {categoriesQuery.isError ? <span className="block text-sm text-bad">Unable to load categories.</span> : null}
+              {errors.category ? <span className="block text-sm text-bad">{errors.category.message}</span> : null}
+            </label>
 
-            {/* Status */}
-            <div className="space-y-2">
-              <Label htmlFor="status">Status *</Label>
-              <select
-                id="status"
-                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
-                {...register("status", { required: "Status is required" })}
-              >
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium">Status *</span>
+              <select className="field" {...register("status", { required: "Status is required" })}>
                 <option value="Recovered">Recovered</option>
                 <option value="Awaiting Pickup">Awaiting Pickup</option>
                 <option value="Claimed">Claimed</option>
               </select>
-              {errors.status ? <p className="text-sm text-rose-600">{errors.status.message}</p> : null}
-            </div>
+            </label>
 
-            {/* Location */}
-            <div className="space-y-2">
-              <Label htmlFor="location">Location Found *</Label>
-              <Input
-                id="location"
-                placeholder="e.g., Main entrance desk"
-                {...register("location", { required: "Location is required" })}
-              />
-              {errors.location ? <p className="text-sm text-rose-600">{errors.location.message}</p> : null}
-            </div>
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium">Where it was found *</span>
+              <input className="field" placeholder="e.g. Main entrance desk" {...register("location", { required: "Location is required" })} />
+              {errors.location ? <span className="block text-sm text-bad">{errors.location.message}</span> : null}
+            </label>
           </div>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
+          <label className="block space-y-1.5">
+            <span className="text-sm font-medium">Description *</span>
             <textarea
-              id="description"
-              placeholder="Describe the item in detail (color, brand, condition, distinguishing features, etc.)"
-              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition focus:border-amber-500 focus:ring-2 focus:ring-amber-100"
+              className="field"
               rows={4}
+              placeholder="Colour, brand, condition, anything that helps the owner recognise it"
               {...register("description", { required: "Description is required" })}
             />
-            {errors.description ? <p className="text-sm text-rose-600">{errors.description.message}</p> : null}
-          </div>
+            {errors.description ? <span className="block text-sm text-bad">{errors.description.message}</span> : null}
+          </label>
 
-          {/* Form Actions */}
-          <div className="flex gap-3">
-            <Button type="submit" className="flex-1" disabled={mutation.isPending}>
-              {mutation.isPending ? "Adding item..." : "✓ Add Item"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate("/items", { replace: true })}
-              disabled={mutation.isPending}
-            >
+          {mutation.isError ? <p className="rounded-xl border border-bad/30 bg-bad/10 p-3 text-sm text-bad">{mutation.error.message}</p> : null}
+
+          <div className="flex flex-wrap gap-3">
+            <button type="submit" className="btn-signal" disabled={mutation.isPending}>
+              {mutation.isPending ? "Hanging it on the shelf…" : "Hang it on the shelf"}
+            </button>
+            <button type="button" className="btn-ghost" onClick={() => navigate("/items", { viewTransition: true })} disabled={mutation.isPending}>
               Cancel
-            </Button>
+            </button>
           </div>
-
-          {mutation.isError ? (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-700">
-              {mutation.error.message}
-            </div>
-          ) : null}
-
-          {mutation.isSuccess ? (
-            <div className="rounded-2xl border border-green-200 bg-green-50 p-4 text-green-700">
-              Item added successfully! Redirecting to items list...
-            </div>
-          ) : null}
         </form>
+
+        <div className="pt-6 lg:sticky lg:top-28" aria-live="polite">
+          <p className="mb-6 font-mono text-xs tracking-[0.18em] text-ink-soft uppercase">Preview</p>
+          <div className="tag" style={{ "--tilt": "-2deg" } as CSSProperties}>
+            <svg className="tag-string" viewBox="0 0 24 40" fill="none" aria-hidden="true">
+              <path d="M12 0 C 4 12, 20 22, 12 38" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+            <div className="tag-face">
+              <span className="tag-hole" aria-hidden="true" />
+              <div className="flex items-start justify-between gap-3">
+                <p className="font-mono text-[0.68rem] tracking-[0.16em] uppercase opacity-70">No. ······</p>
+                {preview.status ? <StatusStamp status={preview.status} delay="0s" /> : null}
+              </div>
+              <h3 className="mt-2 font-display text-2xl leading-tight font-semibold">{preview.name || "Item name"}</h3>
+              <p className="mt-2 line-clamp-3 text-sm opacity-80">{preview.description || "Description"}</p>
+              <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 font-mono text-xs">
+                <dt className="opacity-60">CAT</dt>
+                <dd>{preview.category}</dd>
+                <dt className="opacity-60">AT</dt>
+                <dd className="truncate">{preview.location || "—"}</dd>
+                <dt className="opacity-60">ON</dt>
+                <dd>{new Date().toLocaleDateString()}</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

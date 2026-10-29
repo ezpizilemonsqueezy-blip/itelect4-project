@@ -1,12 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { loginAccount } from "../api/client";
+import PassCard from "../components/PassCard";
 import { useAuthStore } from "../store/authStore";
 
 const loginSchema = z.object({
@@ -18,11 +16,13 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
+  // Set by ProtectedRoute, e.g. "/claims?itemId=..." after clicking "Claim this item".
+  const from = (useLocation().state as { from?: string } | null)?.from ?? "/items";
   const mutation = useMutation({
     mutationFn: ({ email, password }: LoginForm) => loginAccount(email, password),
     onSuccess: ({ token }) => {
       login(token);
-      navigate("/items", { replace: true });
+      navigate(from, { replace: true, viewTransition: true });
     },
   });
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
@@ -31,32 +31,35 @@ export default function LoginPage() {
   });
 
   return (
-    <section className="mx-auto max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600">Campus Recovery Desk</p>
-      <h2 className="mt-2 text-3xl font-bold text-slate-900 dark:text-slate-100">Sign in</h2>
-      <p className="mt-3 text-slate-600 dark:text-slate-300">Sign in to manage items, claims and AI project reviews.</p>
-
-      <form onSubmit={handleSubmit((values) => mutation.mutate(values))} className="mt-6 space-y-4" noValidate>
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" autoComplete="email" placeholder="you@example.com" {...register("email")} />
-          {errors.email && <p className="text-sm text-rose-600">{errors.email.message}</p>}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" autoComplete="current-password" {...register("password")} />
-          {errors.password && <p className="text-sm text-rose-600">{errors.password.message}</p>}
-        </div>
-        {mutation.isError && <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">{mutation.error.message}</p>}
-        <Button type="submit" className="w-full" disabled={mutation.isPending}>
-          {mutation.isPending ? "Signing in…" : "Sign in"}
-        </Button>
+    <PassCard
+      eyebrow="Visitor pass"
+      title="Welcome back"
+      subtitle="Sign in to claim an item, tag something you found, or review claims on your items."
+      footer={
+        <>
+          New to the desk?{" "}
+          <Link to="/register" state={{ from }} viewTransition className="font-semibold text-signal hover:underline">
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit((values) => mutation.mutate(values))} className="space-y-4" noValidate>
+        <label className="block space-y-1.5">
+          <span className="text-sm font-medium">Email</span>
+          <input className="field" type="email" autoComplete="email" placeholder="you@school.edu" {...register("email")} />
+          {errors.email && <span className="block text-sm text-bad">{errors.email.message}</span>}
+        </label>
+        <label className="block space-y-1.5">
+          <span className="text-sm font-medium">Password</span>
+          <input className="field" type="password" autoComplete="current-password" {...register("password")} />
+          {errors.password && <span className="block text-sm text-bad">{errors.password.message}</span>}
+        </label>
+        {mutation.isError && <p role="alert" className="rounded-xl border border-bad/30 bg-bad/10 p-3 text-sm text-bad">{mutation.error.message}</p>}
+        <button type="submit" className="btn-signal w-full" disabled={mutation.isPending}>
+          {mutation.isPending ? "Checking your pass…" : "Sign in"}
+        </button>
       </form>
-
-      <p className="mt-5 text-center text-sm text-slate-600 dark:text-slate-300">
-        New to the app?{" "}
-        <Link to="/register" className="font-semibold text-indigo-600 hover:underline">Create an account</Link>
-      </p>
-    </section>
+    </PassCard>
   );
 }

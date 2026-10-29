@@ -49,6 +49,10 @@ This app lets staff:
 
 All data comes from [itelect4-backend](https://github.com/ezpizilemonsqueezy-blip/itelect4-backend) (Express + MongoDB Atlas). Every call goes through the single `request()` helper in `src/api/client.ts`, which prefixes `VITE_API_URL` and adds the `Authorization: Bearer <token>` header to private calls. The types in that file mirror the backend's JSON responses.
 
+## Design
+
+The UI is a "lost property office": items are manila luggage tags, statuses are rubber stamps, and the home page radar shows every real item as a blip that pings when the sweep passes it. Animations only use `transform` and `opacity` (GPU-composited, 60fps), page changes use the View Transitions API (a tag grows into its detail page), and everything is switched off under `prefers-reduced-motion`. The Items page has a "flashlight" search mode. Styles live in `src/index.css`; motion helpers in `src/lib/motion.ts`.
+
 ## Setup Instructions
 
 1. Install dependencies:

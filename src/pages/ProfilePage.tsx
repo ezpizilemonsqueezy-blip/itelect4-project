@@ -4,13 +4,13 @@ export default function ProfilePage() {
   const token = useAuthStore((state) => state.token);
 
   return (
-    <section className="mx-auto max-w-2xl rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600">Profile</p>
-      <h2 className="mt-2 text-3xl font-bold text-slate-900">Studio account</h2>
+    <section className="panel rise mx-auto max-w-2xl p-8">
+      <p className="eyebrow">Profile</p>
+      <h1 className="mt-2 font-display text-4xl font-semibold">Your desk pass</h1>
 
-      <div className="mt-6 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
-        <p className="font-medium text-slate-900">Auth token</p>
-        <p className="mt-2 break-all">{token ?? "No active token"}</p>
+      <div className="mt-6 rounded-2xl border border-dashed border-line p-4 text-sm">
+        <p className="font-mono text-xs tracking-[0.16em] text-ink-soft uppercase">Auth token</p>
+        <p className="mt-2 font-mono text-xs break-all">{token ?? "No active token"}</p>
       </div>
     </section>
   );
