@@ -1,3 +1,5 @@
+[![CI](https://github.com/ezpizilemonsqueezy-blip/itelect4-project/actions/workflows/ci.yml/badge.svg)](https://github.com/ezpizilemonsqueezy-blip/itelect4-project/actions/workflows/ci.yml)
+
 # Campus Recovery Desk
 
 A React + TypeScript + Vite lost-and-found application for managing recovered items, claims, and staff access. This version demonstrates the GT3 routing and auth pattern using a domain-specific app instead of reusing the class demo.
@@ -52,6 +54,16 @@ All data comes from [itelect4-backend](https://github.com/ezpizilemonsqueezy-bli
 ## Design
 
 The UI is a "lost property office": items are manila luggage tags, statuses are rubber stamps, and the home page radar shows every real item as a blip that pings when the sweep passes it. Animations only use `transform` and `opacity` (GPU-composited, 60fps), page changes use the View Transitions API (a tag grows into its detail page), and everything is switched off under `prefers-reduced-motion`. The Items page has a "flashlight" search mode. Styles live in `src/index.css`; motion helpers in `src/lib/motion.ts`.
+
+## Testing
+
+`npm test` runs Vitest in jsdom with Testing Library:
+
+- `src/components/ItemTag.test.tsx`: the tag shows the status stamp that matches the item's `status` prop
+- `src/hooks/useToggle.test.ts`: the hook starts at its initial value and flips inside `act()`
+- `src/pages/RegisterPage.test.tsx`: bad input shows the schema's exact messages and `fetch` is never called
+
+GitHub Actions runs `npm ci`, `npm run typecheck` and `npm test` on every push.
 
 ## Setup Instructions
 
